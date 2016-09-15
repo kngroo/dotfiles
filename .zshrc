@@ -17,11 +17,11 @@ antigen bundle tmuxinator
 antigen bundle ssh-agent
 
 # Syntax highlighting
-# antigen bundle zsh-users/zsh-syntax-highlighting
+antigen bundle zsh-users/zsh-syntax-highlighting
 
 antigen apply
 
-alias config='/usr/bin/git --git-dir=/Users/joshkang/.myconf/ --work-tree=/Users/joshkang'
-# [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+alias config='/usr/bin/git --git-dir=$HOME/.myconf/ --work-tree=$HOME'
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
