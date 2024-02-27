@@ -10,12 +10,18 @@
   diffFilter = delta --color-only
 
 [delta]
+  features = decorations line-numbers
   navigate = true    # use n and N to move between diff sections
   light = false      # set to true if you're in a terminal w/ a light background color (e.g. the default macOS terminal)
   line-numbers = true
   side-by-side = true
   syntax-theme = Dracula
 
+[delta "decorations"]
+  commit-decoration-style = bold yellow box ul
+  file-style = bold yellow ul
+  file-decoration-style = none
+  hunk-header-decoration-style = cyan box ul
   # theme
   minus-style = syntax "#330f0f"
   minus-emph-style = syntax "#4f1917"
@@ -28,6 +34,14 @@
     bold yellow => syntax "#222f14"
   zero-style = syntax
   whitespace-error-style = "#aaaaaa"
+    plus-style = syntax "#003800"
+    minus-style = syntax "#3f0001"
+
+[delta "line-numbers"]
+  line-numbers-left-style = cyan
+  line-numbers-right-style = cyan
+  line-numbers-minus-style = 124
+  line-numbers-plus-style = 28
 
 [merge]
   conflictstyle = diff3
