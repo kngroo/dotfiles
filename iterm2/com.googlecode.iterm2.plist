@@ -228,7 +228,7 @@
 		</dict>
 	</dict>
 	<key>Default Bookmark Guid</key>
-	<string>5BD304A3-8235-4FF8-B0BC-801CB9AFDA37</string>
+	<string>9D468A70-0F48-406C-8954-98F66C27E04E</string>
 	<key>DimBackgroundWindows</key>
 	<false/>
 	<key>DimInactiveSplitPanes</key>
@@ -492,6 +492,8 @@
 			<string>Default</string>
 			<key>Disable Window Resizing</key>
 			<true/>
+			<key>Draw Powerline Glyphs</key>
+			<true/>
 			<key>Flashing Bell</key>
 			<false/>
 			<key>Foreground Color</key>
@@ -504,7 +506,7 @@
 				<real>0.97254902124404907</real>
 			</dict>
 			<key>Guid</key>
-			<string>5BD304A3-8235-4FF8-B0BC-801CB9AFDA37</string>
+			<string>9D468A70-0F48-406C-8954-98F66C27E04E</string>
 			<key>Horizontal Spacing</key>
 			<real>1</real>
 			<key>Idle Code</key>
@@ -814,6 +816,8 @@
 				<key>Red Component</key>
 				<real>0.0</real>
 			</dict>
+			<key>Minimum Contrast</key>
+			<real>0.0</real>
 			<key>Mouse Reporting</key>
 			<true/>
 			<key>Name</key>
@@ -823,7 +827,9 @@
 			<key>Non-ASCII Anti Aliased</key>
 			<true/>
 			<key>Normal Font</key>
-			<string>FiraCode-Regular 12</string>
+			<string>MesloLGS-NF-Regular 13</string>
+			<key>Only The Default BG Color Uses Transparency</key>
+			<true/>
 			<key>Option Key Sends</key>
 			<integer>0</integer>
 			<key>Prompt Before Closing 2</key>
