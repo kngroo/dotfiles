@@ -128,3 +128,6 @@ eval "$(pyenv init -)"
 
 # Created by `pipx` on 2024-02-28 00:31:08
 export PATH="$PATH:/Users/joshkang/.local/bin"
+
+# Patlytics JIRA
+export JIRA_API_TOKEN="ATATT3xFfGF0PETM8gshksv6jsDqbcH3s4Hohd5OPZA8KHcq-Bgl3hJW0z5GbHN5C63-Bqr6IMiqrTwNpzNCyjgZkUJEzILRgLAiwXqEjhXq_s7Av6OrNAWsz-b-oaXNjYRBdfe2GZfZAn3pcNiFkuwcqo4JOMZlciLxurw3xBtDd-qEPg2b654=32DB86AF"
