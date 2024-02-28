@@ -48,5 +48,10 @@
 
 [diff]
   colorMoved = default
+
 [push]
-	autoSetupRemote = true
+  autoSetupRemote = true
+
+[pull]
+  rebase = true
+
