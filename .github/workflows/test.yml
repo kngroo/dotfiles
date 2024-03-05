@@ -4,10 +4,9 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: macOS-latest
-    
+
     steps:
-    - uses: actions/checkout@v1
-    - name: Execute full install
-      run:  ./setup.sh
+      - uses: actions/checkout@v1
+      - name: Execute full install
+        run: ./install.sh

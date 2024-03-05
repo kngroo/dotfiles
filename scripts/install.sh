@@ -1,6 +1,13 @@
+#!/bin/bash
+
+LOCAL_REPO=~/Development/dotfiles
+
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
 brew_install() { # Installs brew using the install script
-  which -s brew
-  if [[ $? != 0 ]]; then
+  if ! command_exists brew; then
     echo Installing Homebrew
     NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -9,14 +16,12 @@ brew_install() { # Installs brew using the install script
   fi
 }
 
-nvm_install() {
-  echo Installing nvm
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-}
-
-echo Running setup script!
+echo Running install script!
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   brew_install
-  nvm_install
+  echo Cloning dotfiles repo from git
+  mkdir -p $LOCAL_REPO
+  git clone https://github.com/kngroo/dotfiles $LOCAL_REPO
+  cd $LOCAL_REPO
 fi
