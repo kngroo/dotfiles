@@ -34,7 +34,20 @@ if ! command -v stow &>/dev/null; then
 fi
 
 stow_package() {
-    stow -d packages -t "$HOME" "$1"
+    local pkg="$1"
+    # Back up any real (non-symlink) file already at a target path this
+    # package would occupy, instead of letting stow refuse outright - so a
+    # pre-existing config (e.g. a default ~/.gitconfig or ~/.bashrc) is kept,
+    # not silently lost or fought over.
+    while IFS= read -r -d '' src; do
+        local rel="${src#packages/"$pkg"/}"
+        local target="$HOME/$rel"
+        if [[ -e "$target" && ! -L "$target" ]]; then
+            echo "  backing up existing $target -> $target.pre-dotfiles-backup"
+            mv "$target" "$target.pre-dotfiles-backup"
+        fi
+    done < <(find "packages/$pkg" -type f -print0)
+    stow -d packages -t "$HOME" "$pkg"
 }
 
 install_git() {
