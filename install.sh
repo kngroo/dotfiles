@@ -24,7 +24,11 @@ pkg_install() {
     if [[ "$OS" == "macos" ]]; then
         command -v brew &>/dev/null && brew install "$@" || echo "  (brew not found, skipping: $*)"
     else
-        command -v apt-get &>/dev/null && sudo apt-get install -y "$@" || echo "  (apt-get not found, skipping: $*)"
+        # DEBIAN_FRONTEND=noninteractive avoids apt/needrestart hanging on an
+        # interactive debconf prompt (e.g. "which services should be
+        # restarted?") when there's no TTY to answer it - a well-known cause
+        # of CI runs stalling indefinitely on `apt-get install`.
+        command -v apt-get &>/dev/null && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "$@" || echo "  (apt-get not found, skipping: $*)"
     fi
 }
 
