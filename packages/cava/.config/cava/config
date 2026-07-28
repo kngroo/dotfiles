@@ -1,0 +1,33 @@
+[general]
+mode = normal
+framerate = 60
+bars = 0
+autosens = 1
+sensitivity = 100
+
+[input]
+method = fifo
+source = /tmp/cava.fifo
+sample_rate = 44100
+sample_bits = 16
+channels = 2
+
+[output]
+method = noncurses
+channels = stereo
+
+[color]
+background = '#1e1e2e'
+gradient = 1
+gradient_count = 8
+gradient_color_1 = '#f38ba8'
+gradient_color_2 = '#fab387'
+gradient_color_3 = '#f9e2af'
+gradient_color_4 = '#a6e3a1'
+gradient_color_5 = '#94e2d5'
+gradient_color_6 = '#89dceb'
+gradient_color_7 = '#89b4fa'
+gradient_color_8 = '#cba6f7'
+
+[smoothing]
+noise_reduction = 60
