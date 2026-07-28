@@ -102,22 +102,47 @@ version_lt() {
     return 1
 }
 
+# apt's neovim is frequently older than what LazyVim requires (e.g. Debian
+# 13 ships 0.10.4; Ubuntu's is similarly behind). Critically, an nvim that's
+# too old doesn't fail `Lazy! sync` cleanly - it hangs waiting for a keypress
+# ("LazyVim requires Neovim >= X" prompt), which blocks forever in headless
+# mode and stalls CI indefinitely rather than erroring. So: don't just warn,
+# actually replace it with the prebuilt upstream binary when this happens.
+install_prebuilt_nvim() {
+    local arch tarball
+    case "$(uname -m)" in
+        x86_64) arch="x86_64" ;;
+        aarch64|arm64) arch="arm64" ;;
+        *) echo "  unsupported architecture ($(uname -m)) for prebuilt nvim, skipping"; return 1 ;;
+    esac
+    tarball="nvim-linux-${arch}.tar.gz"
+    echo "  downloading prebuilt nvim ($tarball)..."
+    curl -fsSL -o /tmp/nvim-prebuilt.tar.gz \
+        "https://github.com/neovim/neovim/releases/latest/download/${tarball}"
+    mkdir -p "$HOME/.local/opt/nvim-prebuilt" "$HOME/.local/bin"
+    tar xzf /tmp/nvim-prebuilt.tar.gz --strip-components=1 -C "$HOME/.local/opt/nvim-prebuilt"
+    ln -sf "$HOME/.local/opt/nvim-prebuilt/bin/nvim" "$HOME/.local/bin/nvim"
+    hash -r
+}
+
 install_nvim() {
     echo "== nvim =="
     pkg_install neovim
-    if command -v nvim &>/dev/null; then
-        version="$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-        required="0.11.2"
-        if version_lt "$version" "$required"; then
-            echo "  nvim $version is older than the required $required (see MANIFEST.md for the manual prebuilt-binary fix)."
-        fi
+    version="0.0.0"
+    command -v nvim &>/dev/null && version="$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+    if [[ "$OS" == "linux" ]] && version_lt "$version" "0.11.2"; then
+        echo "  apt's nvim ($version) is older than the 0.11.2 LazyVim requires."
+        install_prebuilt_nvim
     fi
     stow_package nvim
     if command -v npm &>/dev/null; then
         npm install -g tree-sitter-cli || echo "  npm install -g tree-sitter-cli failed; nvim-treesitter parsers won't build until it's installed manually."
     fi
     if command -v nvim &>/dev/null; then
-        nvim --headless "+Lazy! sync" +qa || echo "  Lazy plugin sync failed; run 'nvim --headless \"+Lazy! sync\" +qa' manually to retry."
+        # timeout as a safety net: an nvim/plugin issue we haven't seen yet
+        # should fail loudly after 5 minutes, not hang the whole install
+        # (and CI) indefinitely the way the version mismatch above did.
+        timeout 300 nvim --headless "+Lazy! sync" +qa || echo "  Lazy plugin sync failed or timed out; run 'nvim --headless \"+Lazy! sync\" +qa' manually to retry."
     fi
 }
 

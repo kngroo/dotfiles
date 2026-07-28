@@ -82,18 +82,19 @@ Running `./install.sh` with no arguments installs, in this order:
 - **What it is:** Neovim + LazyVim + Catppuccin Mocha. `lazy-lock.json` is
   committed on purpose (LazyVim convention) so plugin versions are pinned
   and reproducible across machines.
-- **Requires:** Neovim **>= 0.11.2**. Debian/Ubuntu's `apt` package may be
-  older than this (Debian 13 "trixie" ships 0.10.4, which is too old) — check
-  `nvim --version` after installing and, if it's too old, grab a prebuilt
-  release instead of the apt one:
-  ```
-  curl -fsSL -o /tmp/nvim.tar.gz \
-    https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
-  mkdir -p ~/.local/opt && tar xzf /tmp/nvim.tar.gz -C ~/.local/opt/
-  ln -sf ~/.local/opt/nvim-linux-x86_64/bin/nvim ~/.local/bin/nvim
-  ```
-  (`~/.local/bin` must be early in `$PATH` — the `bash` package's `.bashrc` does this.)
-  - apt: `neovim` (verify version; may need the manual install above)
+- **Requires:** Neovim **>= 0.11.2**. Debian/Ubuntu's `apt` package is
+  frequently older than this (e.g. Debian 13 "trixie" ships 0.10.4). Critically,
+  an nvim that's too old doesn't fail `Lazy! sync` cleanly - it hangs waiting
+  for a keypress on a version-mismatch prompt, which blocks forever in
+  headless mode (this stalled CI for 9+ minutes before we understood it).
+  `install.sh` handles this itself: after installing via apt, it checks
+  `nvim --version`, and if it's still too old, downloads the prebuilt
+  upstream release into `~/.local/opt/nvim-prebuilt` and symlinks it into
+  `~/.local/bin/nvim` (which must be early in `$PATH` - the `bash` package's
+  `.bashrc` does this). The Lazy sync step also has a 5-minute `timeout`
+  around it as a safety net, in case some other issue causes the same kind
+  of hang.
+  - apt: `neovim` (version-checked and auto-replaced above if too old)
   - brew: `neovim` (Homebrew stays current, no workaround needed)
 - **Requires (runtime, not apt/brew):** Node.js + `npm` (see `scripts/node.sh`),
   used to install the `tree-sitter` CLI, which `nvim-treesitter` needs to
