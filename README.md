@@ -19,8 +19,9 @@ cd ~/dotfiles
 ./install.sh nvim tmux    # install only specific packages
 ```
 
-Requires `stow` (and `git`) to already be installed — everything else
-`install.sh` will try to install itself via `apt` (Linux) or `brew` (macOS).
+Requires `git` (to clone this repo in the first place) — `install.sh`
+installs `stow` itself if it's missing, and everything else too, via `apt`
+(Linux) or `brew` (macOS).
 
 ## Layout
 

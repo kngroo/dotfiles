@@ -28,6 +28,11 @@ pkg_install() {
     fi
 }
 
+if ! command -v stow &>/dev/null; then
+    echo "GNU Stow not found, installing it (required to apply any package)..."
+    pkg_install stow
+fi
+
 stow_package() {
     stow -d packages -t "$HOME" "$1"
 }
@@ -58,7 +63,7 @@ install_tmux() {
     if [[ ! -d "$HOME/.tmux/plugins/tpm" ]]; then
         git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
     fi
-    "$HOME/.tmux/plugins/tpm/bin/install_plugins"
+    "$HOME/.tmux/plugins/tpm/bin/install_plugins" || echo "  TPM plugin install failed; run ~/.tmux/plugins/tpm/bin/install_plugins manually to retry."
 }
 
 install_starship() {
@@ -67,19 +72,36 @@ install_starship() {
     stow_package starship
 }
 
+# Portable version comparison (no `sort -V`, which is a GNU-only extension
+# that macOS's built-in BSD sort doesn't support).
+version_lt() {
+    local IFS=.
+    local -a a=($1) b=($2)
+    for i in 0 1 2; do
+        local ai=${a[i]:-0} bi=${b[i]:-0}
+        (( ai < bi )) && return 0
+        (( ai > bi )) && return 1
+    done
+    return 1
+}
+
 install_nvim() {
     echo "== nvim =="
     pkg_install neovim
     if command -v nvim &>/dev/null; then
         version="$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
         required="0.11.2"
-        if [[ "$(printf '%s\n%s\n' "$required" "$version" | sort -V | head -1)" != "$required" ]]; then
+        if version_lt "$version" "$required"; then
             echo "  nvim $version is older than the required $required (see MANIFEST.md for the manual prebuilt-binary fix)."
         fi
     fi
     stow_package nvim
-    command -v npm &>/dev/null && npm install -g tree-sitter-cli
-    command -v nvim &>/dev/null && nvim --headless "+Lazy! sync" +qa
+    if command -v npm &>/dev/null; then
+        npm install -g tree-sitter-cli || echo "  npm install -g tree-sitter-cli failed; nvim-treesitter parsers won't build until it's installed manually."
+    fi
+    if command -v nvim &>/dev/null; then
+        nvim --headless "+Lazy! sync" +qa || echo "  Lazy plugin sync failed; run 'nvim --headless \"+Lazy! sync\" +qa' manually to retry."
+    fi
 }
 
 install_fastfetch() {
