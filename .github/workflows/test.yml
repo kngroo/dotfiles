@@ -1,12 +1,50 @@
-name: Test
+name: Validate dotfiles
 
-on: [push]
+on: [push, pull_request]
+
+permissions:
+  contents: read
 
 jobs:
-  build:
-    runs-on: macOS-latest
-
+  validate:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - name: Execute full install
-        run: ./install.sh
+      - uses: actions/checkout@v4
+      - name: Install validation tools
+        run: sudo apt-get update && sudo apt-get install -y stow zsh
+      - name: Check config syntax
+        run: |
+          git diff --check
+          zsh -n zsh/.zshrc
+          zsh -n zsh/.p10k.zsh
+          zsh -n zsh/.fzf.zsh
+          python3 -m json.tool agent-settings/claude.json >/dev/null
+          python3 -c 'import pathlib, tomllib; tomllib.loads(pathlib.Path("agent-settings/codex.toml").read_text())'
+      - name: Verify agent links in an isolated home
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_dir=$(mktemp -d)
+          trap 'rm -rf "$target_dir"' EXIT
+          stow --no-folding --target="$target_dir" agents codex claude
+          test -L "$target_dir/.agents/instructions/global.md"
+          test -L "$target_dir/.codex/AGENTS.md"
+          test -L "$target_dir/.claude/CLAUDE.md"
+          test ! -L "$target_dir/.codex"
+          test ! -L "$target_dir/.claude"
+          cmp agents/.agents/instructions/global.md "$target_dir/.agents/instructions/global.md"
+          cmp codex/.codex/AGENTS.md "$target_dir/.codex/AGENTS.md"
+          cmp claude/.claude/CLAUDE.md "$target_dir/.claude/CLAUDE.md"
+          printf 'local runtime state\n' > "$target_dir/.codex/local-state"
+          stow --no-folding --target="$target_dir" agents codex claude
+          stow --delete --target="$target_dir" agents codex claude
+          test ! -L "$target_dir/.codex/AGENTS.md"
+          test ! -L "$target_dir/.claude/CLAUDE.md"
+          test -f "$target_dir/.codex/local-state"
+          printf 'existing instructions\n' > "$target_dir/.codex/AGENTS.md"
+          if stow --no-folding --target="$target_dir" codex; then
+            echo 'Expected Stow to reject an unmanaged file conflict' >&2
+            exit 1
+          fi
+          test ! -L "$target_dir/.codex/AGENTS.md"
+          test "$(cat "$target_dir/.codex/AGENTS.md")" = 'existing instructions'

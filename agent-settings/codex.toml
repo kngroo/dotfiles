@@ -1,0 +1,2 @@
+# Merge into the local config only when supported by the selected model.
+model_reasoning_effort = "xhigh"
