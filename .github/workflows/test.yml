@@ -11,40 +11,69 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install validation tools
-        run: sudo apt-get update && sudo apt-get install -y stow zsh
+        run: sudo apt-get update && sudo apt-get install -y stow zsh luajit
       - name: Check config syntax
         run: |
           git diff --check
-          zsh -n zsh/.zshrc
-          zsh -n zsh/.p10k.zsh
-          zsh -n zsh/.fzf.zsh
-          python3 -m json.tool agent-settings/claude.json >/dev/null
-          python3 -c 'import pathlib, tomllib; tomllib.loads(pathlib.Path("agent-settings/codex.toml").read_text())'
-      - name: Verify agent links in an isolated home
+          zsh -n packages/zsh/.zshrc
+          zsh -n packages/zsh/.p10k.zsh
+          zsh -n packages/zsh/.fzf.zsh
+          bash -n packages/bash/.bashrc
+          bash -n packages/bash/.bash_aliases
+          bash -n packages/local-bin/.local/bin/cava-demo
+          python3 - <<'PY'
+          import json, pathlib, tomllib
+          for root in (pathlib.Path("packages"), pathlib.Path("agent-settings")):
+              for path in root.rglob("*"):
+                  if path.suffix in (".json", ".jsonc"):
+                      json.loads(path.read_text())  # Current JSONC files use the JSON subset.
+                  elif path.suffix == ".toml":
+                      tomllib.loads(path.read_text())
+          PY
+          bytecode=$(mktemp)
+          trap 'rm -f "$bytecode"' EXIT
+          for file in packages/nvim/.config/nvim/init.lua packages/nvim/.config/nvim/lua/{config,plugins}/*.lua; do
+            luajit -b "$file" "$bytecode"
+          done
+      - name: Verify package links in an isolated home
         shell: bash
         run: |
           set -euo pipefail
           target_dir=$(mktemp -d)
           trap 'rm -rf "$target_dir"' EXIT
-          stow --no-folding --target="$target_dir" agents codex claude
+          selected=(agents codex claude git bash tmux vim zsh starship fastfetch nvim cava-headless local-bin)
+          stow --dir=packages --no-folding --target="$target_dir" "${selected[@]}"
           test -L "$target_dir/.agents/instructions/global.md"
           test -L "$target_dir/.codex/AGENTS.md"
           test -L "$target_dir/.claude/CLAUDE.md"
           test ! -L "$target_dir/.codex"
           test ! -L "$target_dir/.claude"
-          cmp agents/.agents/instructions/global.md "$target_dir/.agents/instructions/global.md"
-          cmp codex/.codex/AGENTS.md "$target_dir/.codex/AGENTS.md"
-          cmp claude/.claude/CLAUDE.md "$target_dir/.claude/CLAUDE.md"
+          cmp packages/agents/.agents/instructions/global.md "$target_dir/.agents/instructions/global.md"
+          cmp packages/codex/.codex/AGENTS.md "$target_dir/.codex/AGENTS.md"
+          cmp packages/claude/.claude/CLAUDE.md "$target_dir/.claude/CLAUDE.md"
+          cmp packages/starship/.config/starship.toml "$target_dir/.config/starship.toml"
+          cmp packages/fastfetch/.config/fastfetch/config.jsonc "$target_dir/.config/fastfetch/config.jsonc"
+          cmp packages/nvim/.config/nvim/lua/plugins/editor.lua "$target_dir/.config/nvim/lua/plugins/editor.lua"
+          test -x "$target_dir/.local/bin/cava-demo"
+          test ! -L "$target_dir/.config/nvim"
+          test ! -L "$target_dir/.local/bin"
+          if stow --dir=packages --no-folding --target="$target_dir" fastfetch-headless; then
+            echo 'Expected Fastfetch alternatives to conflict' >&2
+            exit 1
+          fi
           printf 'local runtime state\n' > "$target_dir/.codex/local-state"
-          stow --no-folding --target="$target_dir" agents codex claude
-          stow --delete --target="$target_dir" agents codex claude
+          stow --dir=packages --no-folding --target="$target_dir" "${selected[@]}"
+          stow --dir=packages --delete --target="$target_dir" "${selected[@]}"
           test ! -L "$target_dir/.codex/AGENTS.md"
           test ! -L "$target_dir/.claude/CLAUDE.md"
           test -f "$target_dir/.codex/local-state"
           printf 'existing instructions\n' > "$target_dir/.codex/AGENTS.md"
-          if stow --no-folding --target="$target_dir" codex; then
+          if stow --dir=packages --no-folding --target="$target_dir" codex; then
             echo 'Expected Stow to reject an unmanaged file conflict' >&2
             exit 1
           fi
           test ! -L "$target_dir/.codex/AGENTS.md"
           test "$(cat "$target_dir/.codex/AGENTS.md")" = 'existing instructions'
+          stow --dir=packages --no-folding --target="$target_dir" fastfetch-headless
+          cmp packages/fastfetch-headless/.config/fastfetch/config.jsonc "$target_dir/.config/fastfetch/config.jsonc"
+          stow --dir=packages --delete --target="$target_dir" fastfetch-headless

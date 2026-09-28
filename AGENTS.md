@@ -1,6 +1,7 @@
 # Working on these dotfiles
 
 Read `docs/setup.md` before provisioning, repairing, or linking configuration.
+Read `docs/packages.md` for package dependencies and platform choices.
 Read `docs/agents.md` before changing global agent configuration.
 
 Inspect the actual environment. Preserve existing working configuration and resolve
@@ -16,6 +17,9 @@ side effect of importing preferences.
 Keep setup knowledge in the guides rather than adding a universal installer.
 Record machine-specific changes in ignored `.local/` files. Update the guides when
 the repository's layout or setup requirements change.
+
+All Stow packages live under `packages/`. Use an explicit `--dir=packages`, target,
+and `--no-folding`. The two Fastfetch packages are alternatives, never apply both.
 
 Validate changed config syntax and links in a temporary home before touching live
 targets. Run `git diff --check`. Never run a shell config merely to syntax-check it.
