@@ -5,9 +5,9 @@ merge these into the machine's existing setup, preserving local integrations.
 
 | Repository file | Default destination | Handling |
 | --- | --- | --- |
-| `agents/.agents/instructions/global.md` | `~/.agents/instructions/global.md` | Stow `agents` |
-| `codex/.codex/AGENTS.md` | `~/.codex/AGENTS.md` | Stow `codex` after reconciling existing instructions |
-| `claude/.claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Stow `claude` after reconciling existing instructions |
+| `packages/agents/.agents/instructions/global.md` | `~/.agents/instructions/global.md` | Stow `agents` |
+| `packages/codex/.codex/AGENTS.md` | `~/.codex/AGENTS.md` | Stow `codex` after reconciling existing instructions |
+| `packages/claude/.claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Stow `claude` after reconciling existing instructions |
 | `agent-settings/codex.toml` | `~/.codex/config.toml` | Merge supported keys only |
 | `agent-settings/claude.json` | `~/.claude/settings.json` | Merge supported keys only |
 

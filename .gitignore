@@ -1,5 +1,5 @@
 .DS_Store
-.local/
+/.local/
 *.local.*
 .env
 .env.*
@@ -23,4 +23,6 @@
 **/memories/
 **/cache/
 **/logs/
-**/plugins/
+**/.codex/plugins/
+**/.claude/plugins/
+**/.cursor/plugins/

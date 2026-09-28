@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Feeds a test tone (or an audio file, if given as $1) into cava's fifo.
+# Run `cava` in one pane, then this script in another.
+set -euo pipefail
+
+FIFO="/tmp/cava.fifo"
+[[ -p "$FIFO" ]] || mkfifo "$FIFO"
+
+if [[ $# -ge 1 ]]; then
+    exec ffmpeg -re -i "$1" -f s16le -ar 44100 -ac 2 - > "$FIFO"
+else
+    exec ffmpeg -re -f lavfi -i "sine=frequency=440:duration=30" -f s16le -ar 44100 -ac 2 - > "$FIFO"
+fi

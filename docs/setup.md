@@ -21,21 +21,17 @@ input, inspect the environment, and adapt. There is no universal install command
 
 ## 2. Choose what applies
 
-| Source | Destination / handling |
-| --- | --- |
-| `git/` | Stow package for `.gitconfig`; check identity and Delta availability |
-| `zsh/` | Older shell package; reconcile prompt, plugins, NVM, and hardcoded paths first |
-| `bash/`, `tmux/`, `vim/` | Optional Stow packages; inspect compatibility with installed versions |
-| `agents/`, `codex/`, `claude/` | Selected global instruction files; see `docs/agents.md` |
-| `agent-settings/` | Preference fragments to merge, not Stow packages |
-| `Brewfile` | Historical macOS package inventory; select needed, available packages |
-| `iterm2/` | Legacy app export and color theme; import through the app only if wanted |
-| `scripts/changemacaddress` | Unrelated utility; never part of machine setup |
+Read [the package inventory](packages.md). It is the single list of package purpose,
+dependencies, and follow-up steps. All Stow packages live under `packages/`; select
+them explicitly. `agent-settings/` contains merge inputs, not Stow packages.
+The Brewfile and iTerm2 export are historical references. The MAC-address utility
+is unrelated to setup.
 
 The checked-in Zsh setup still uses Oh My Zsh, Powerlevel10k, eager NVM loading,
 and an old absolute user path. Don't replace a newer working Starship or lazy-NVM
-setup with these files. Ghostty, Starship, and Fastfetch configs haven't been imported
-yet. If the user wants to capture them, review the live files and dependencies first.
+setup with these files. Starship, Fastfetch, and Neovim have been captured from the
+current Mac; Ghostty and the current Zsh config haven't. An imported application
+config doesn't initialize that application in the shell by itself.
 
 On macOS, check the active Homebrew installation before using it. On Linux or WSL,
 use the available package manager and skip macOS applications. On native Windows,
@@ -57,7 +53,7 @@ unresolved. Authentication may need the user; never copy credentials into Git.
 Back up conflicting live files outside this repository, preserving symlinks and
 permissions. Record each original path, backup path, and original link destination
 in `.local/setup.md`. Don't put backup contents in that record. Merge useful local
-changes before linking; avoid `stow --adopt`, forced symlinks, and recursive copies
+changes before linking; avoid `stow --dir=packages --adopt`, forced symlinks, and recursive copies
 of entire config directories.
 
 For reviewed Stow packages, use an explicit target and `--no-folding`. This keeps
@@ -66,14 +62,19 @@ First test in a temporary home; then preview the same selected packages against 
 real home. For example, from the repo root with default agent directories:
 
 ```sh
-stow --simulate --verbose --no-folding --target="$HOME" agents codex claude
-stow --verbose --no-folding --target="$HOME" agents codex claude
+stow --dir=packages --simulate --verbose --no-folding --target="$HOME" agents codex claude
+stow --dir=packages --verbose --no-folding --target="$HOME" agents codex claude
 ```
 
 Only run the second command after inspecting the preview and resolving conflicts.
 Don't run `stow *`. These commands assume the default home-relative paths; follow
 `docs/agents.md` for custom agent config directories. If Stow isn't suitable, create
 individual reviewed links or merge files directly and document the choice.
+
+If files were linked before the move into `packages/`, inspect each original link.
+Preview unstowing with the old checkout layout before updating it, then restow from
+the new directory. If the checkout already moved, replace only links confirmed to
+point into the old package locations. Don't remove unrelated or regular files.
 
 Preferences in `agent-settings/` require a key-level merge. Preserve all unrelated
 settings. Don't overwrite a live settings file with a fragment. On a fresh machine,
@@ -100,7 +101,7 @@ Create or update ignored `.local/setup.md` with the date, OS, checkout location,
 selected packages, dependency versions, merged keys, backups, validation, and skipped
 items. Keep credentials out of this file too. End with the exact next steps, if any.
 
-To undo links, preview `stow --delete --simulate --verbose --target="$HOME"` with the
+To undo links, preview `stow --dir=packages --delete --simulate --verbose --target="$HOME"` with the
 same selected package names, inspect it, then repeat without `--simulate`. This
 removes links, not the repository files. Restore backed-up files only after checking
 that doing so won't discard changes made since setup. For merged settings, reverse
